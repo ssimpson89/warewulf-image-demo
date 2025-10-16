@@ -6,7 +6,8 @@ FROM docker.io/rockylinux/rockylinux:9
 ARG WAREWULF_VERSION=4.6.4
 
 # Install essential packages, remove SELinux, and install Warewulf dracut module
-RUN dnf install -y --allowerasing \
+RUN dnf update -y \
+    && dnf install -y --allowerasing \
       coreutils \
       cpio \
       dhclient \
