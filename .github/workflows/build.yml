@@ -1,0 +1,100 @@
+name: Build and Publish Container Image
+
+on:
+  # Trigger on pushes to main branch (creates :main tag)
+  push:
+    branches:
+      - main
+
+  # Trigger on GitHub releases (creates version tags)
+  release:
+    types: [published]
+
+  # Allow manual triggering
+  workflow_dispatch:
+
+# Required for signing images with cosign
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      # Step 2: Install Cosign for image signing
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v4.0.0
+        with:
+          cosign-release: 'v3.0.2'
+
+      # Step 3: Set up Docker Buildx for multi-platform builds
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Step 4: Login to GitHub Container Registry
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 5: Extract metadata (tags, labels) for the image
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/warewulf-rockylinux
+          tags: |
+            # Tag with :main for pushes to main branch (overwrites on each push)
+            type=raw,value=main,enable={{is_default_branch}}
+
+            # Calendar Versioning (CalVer) tags for releases only
+            # Example: Create GitHub release tagged v2025.10.0 → creates :2025.10.0 container tag
+            type=match,pattern=v(\d+\.\d+\.\d+),group=1
+
+            # Uncomment the line below to also create a :latest tag (will update on every release)
+            # type=raw,value=latest,enable=${{ github.event_name == 'release' }}
+
+      # Step 6: Build and push the container image
+      - name: Build and push image
+        id: build-and-push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Containerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Step 7: Sign the image with Cosign
+      - name: Sign image with Cosign
+        env:
+          DIGEST: ${{ steps.build-and-push.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          echo "Signing image with digest: ${DIGEST}"
+          cosign sign --yes --recursive \
+            "ghcr.io/${{ github.repository_owner }}/warewulf-rockylinux@${DIGEST}"
+
+      # Step 8: Output the published image details
+      - name: Output image details
+        run: |
+          echo "Image published successfully!"
+          echo "Tags:"
+          echo "${{ steps.meta.outputs.tags }}" | tr ',' '\n'
+          echo ""
+          echo "Digest: ${{ steps.build-and-push.outputs.digest }}"
+          echo ""
+          echo "Pull with: docker pull ghcr.io/${{ github.repository_owner }}/warewulf-rockylinux:main"
+          echo "Import to Warewulf: wwctl container import docker://ghcr.io/${{ github.repository_owner }}/warewulf-rockylinux:main rockylinux-9"

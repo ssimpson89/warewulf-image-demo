@@ -1,0 +1,9 @@
+# Warewulf Image Excludes
+# Files and directories to exclude when packaging the container image
+# This helps reduce image size by excluding unnecessary files
+
+# Boot files (not needed for container-based nodes)
+/boot/
+
+# GeoIP database (usually not needed for HPC nodes)
+/usr/share/GeoIP
