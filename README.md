@@ -36,7 +36,7 @@ podman build -t warewulf-rockylinux:9 .
 
 **What it does:**
 
-- Builds for amd64 and arm64
+- Builds for amd64 (x86_64)
 - Publishes to GitHub Container Registry
 - Signs images with Cosign
 
@@ -56,6 +56,8 @@ The workflow automatically builds and publishes `:2025.10.0`
 **Exclude files:** Add patterns to the `excludes` file
 
 **Enable `:latest` tag:** Uncomment line 64 in `.github/workflows/build.yml`
+
+**Enable ARM64 support:** Uncomment line 75 in `.github/workflows/build.yml`
 
 ## Why Calendar Versioning?
 

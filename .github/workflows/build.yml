@@ -70,7 +70,10 @@ jobs:
         with:
           context: .
           file: ./Containerfile
-          platforms: linux/amd64,linux/arm64
+          # Build for x86_64 only (comment out and uncomment line below for ARM64 support)
+          platforms: linux/amd64
+          # Uncomment for ARM64 support (comment out line above, adds ~2x build time)
+          # platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
