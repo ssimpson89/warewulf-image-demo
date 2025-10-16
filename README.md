@@ -4,7 +4,7 @@ A simple example showing how to automatically build and publish Warewulf node im
 
 This pipeline builds a Rocky Linux 9 container image optimized for HPC clusters and publishes it to GitHub Container Registry (ghcr.io).
 
-> **Note:** This example is a simplified version inspired by [warewulf/warewulf-node-images](https://github.com/warewulf/warewulf-node-images), which provides production-ready container images for multiple Linux distributions.
+> **Note:** This example is a simplified version inspired by [warewulf/warewulf-node-images](https://github.com/warewulf/warewulf-node-images), which provides production-ready container images for multiple Linux distributions. As an example of customization, this build integrates the Warewulf dracut module and generates the initramfs at build time - demonstrating how you can tailor the build process to your specific needs.
 
 ## Quick Start
 
