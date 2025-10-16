@@ -15,10 +15,10 @@ This pipeline builds a Rocky Linux 9 container image optimized for HPC clusters 
 
 ```bash
 # Import development build
-wwctl container import docker://ghcr.io/yourusername/warewulf-rockylinux:main rockylinux9-dev
+wwctl image import docker://ghcr.io/yourusername/warewulf-rockylinux:main rockylinux9-dev
 
 # Import production release
-wwctl container import docker://ghcr.io/yourusername/warewulf-rockylinux:2025.10.0 rockylinux9-2025-10
+wwctl image import docker://ghcr.io/yourusername/warewulf-rockylinux:2025.10.0 rockylinux9-2025-10
 ```
 
 ### Local Testing
