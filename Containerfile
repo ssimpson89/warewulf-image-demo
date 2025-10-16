@@ -44,7 +44,7 @@ COPY excludes /etc/warewulf/
 COPY container_exit.sh /etc/warewulf/
 
 # Run cleanup script
-RUN /etc/warewulf/container_exit.sh
+RUN sh /etc/warewulf/container_exit.sh
 
 # Default command - this image is meant to be imported by Warewulf
 CMD [ "/bin/echo", "This image is intended to be used with the Warewulf cluster management system. Import it using: wwctl container import docker://ghcr.io/[your-org]/warewulf-rockylinux:9 rockylinux-9" ]
