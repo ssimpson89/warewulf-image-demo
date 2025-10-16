@@ -2,9 +2,11 @@
 
 FROM docker.io/rockylinux/rockylinux:9
 
-# Update system and install essential packages for HPC cluster nodes
-RUN dnf update -y \
-    && dnf install -y --allowerasing \
+# Warewulf version to install
+ARG WAREWULF_VERSION=4.6.4
+
+# Install essential packages, remove SELinux, and install Warewulf dracut module
+RUN dnf install -y --allowerasing \
       coreutils \
       cpio \
       dhclient \
@@ -29,15 +31,16 @@ RUN dnf update -y \
       wget \
       which \
       words \
-    && dnf clean all
+    # Remove SELinux policy to reduce image size (can be added back if needed)
+    && dnf remove -y selinux-policy \
+    # Install Warewulf dracut module for network boot support
+    && dnf install -y https://github.com/warewulf/warewulf/releases/download/v${WAREWULF_VERSION}/warewulf-dracut-${WAREWULF_VERSION}-1.el9.noarch.rpm \
+    && dnf clean all \
+    # Set write permissions on root (workaround for OpenHPC compatibility)
+    && chmod u+w /
 
-# Remove SELinux policy to reduce image size
-# Can be added back if needed for specific deployments
-RUN dnf remove -y selinux-policy \
-    && dnf clean all
-
-# Set write permissions on root (workaround for OpenHPC compatibility)
-RUN chmod u+w /
+# Generate initramfs with Warewulf support
+RUN dracut --force --no-hostonly --add wwinit --regenerate-all
 
 # Copy Warewulf-specific configuration files
 COPY excludes /etc/warewulf/
