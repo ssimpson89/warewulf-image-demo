@@ -45,10 +45,10 @@ RUN dracut --force --no-hostonly --add wwinit --regenerate-all
 
 # Copy Warewulf-specific configuration files
 COPY excludes /etc/warewulf/
-COPY container_exit.sh /etc/warewulf/
+COPY image_exit.sh /etc/warewulf/
 
 # Run cleanup script
-RUN sh /etc/warewulf/container_exit.sh
+RUN sh /etc/warewulf/image_exit.sh
 
 # Default command - this image is meant to be imported by Warewulf
 CMD [ "/bin/echo", "This image is intended to be used with the Warewulf cluster management system. Import it using: wwctl container import docker://ghcr.io/[your-org]/warewulf-rockylinux:9 rockylinux-9" ]
