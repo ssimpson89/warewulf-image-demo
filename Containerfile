@@ -3,7 +3,7 @@
 FROM docker.io/rockylinux/rockylinux:9
 
 # Warewulf version to install
-ARG WAREWULF_VERSION=4.6.4
+ARG WAREWULF_VERSION=4.6.5
 
 # Install essential packages, remove SELinux, and install Warewulf dracut module
 RUN dnf update -y \
