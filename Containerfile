@@ -32,6 +32,8 @@ RUN dnf update -y \
       wget \
       which \
       words \
+      ignition \
+      mdadm \
     # Remove SELinux policy to reduce image size (can be added back if needed)
     && dnf remove -y selinux-policy \
     # Install Warewulf dracut module for network boot support
@@ -41,7 +43,7 @@ RUN dnf update -y \
     && chmod u+w /
 
 # Generate initramfs with Warewulf support
-RUN dracut --force --no-hostonly --add wwinit --regenerate-all
+RUN dracut --force --no-hostonly --add wwinit --add ignition --add mdraid --regenerate-all
 
 # Copy Warewulf-specific configuration files
 COPY excludes /etc/warewulf/
