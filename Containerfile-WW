@@ -1,0 +1,27 @@
+# Warewulf Node Image - Rocky Linux 9
+
+FROM ghcr.io/warewulf/warewulf-rockylinux:9
+
+# Warewulf version to install
+ARG WAREWULF_VERSION=4.6.5
+
+# Install essential packages, remove SELinux, and install Warewulf dracut module
+RUN dnf update -y \
+    # Install Warewulf dracut module for network boot support
+    && dnf install -y https://github.com/warewulf/warewulf/releases/download/v${WAREWULF_VERSION}/warewulf-dracut-${WAREWULF_VERSION}-1.el9.noarch.rpm \
+    && dnf clean all \
+    # Set write permissions on root (workaround for OpenHPC compatibility)
+    && chmod u+w /
+
+# Generate initramfs with Warewulf support
+RUN dracut --force --no-hostonly --add wwinit --add ignition --add mdraid --regenerate-all
+
+# Copy Warewulf-specific configuration files
+COPY excludes /etc/warewulf/
+COPY image_exit.sh /etc/warewulf/
+
+# Run cleanup script
+RUN sh /etc/warewulf/image_exit.sh
+
+# Default command - this image is meant to be imported by Warewulf
+CMD [ "/bin/echo", "This image is intended to be used with the Warewulf cluster management system. Import it using: wwctl container import docker://ghcr.io/[your-org]/warewulf-rockylinux:9 rockylinux-9" ]
