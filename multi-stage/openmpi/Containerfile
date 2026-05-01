@@ -1,0 +1,54 @@
+ARG OPENMPI_VERSION=5.0.6
+
+# --- Stage 1: Builder ---------------------------------------------------------
+
+FROM docker.io/rockylinux/rockylinux:9 AS builder
+
+ARG OPENMPI_VERSION
+ARG OPENMPI_PREFIX=/opt/openmpi
+
+RUN dnf install -y --setopt=install_weak_deps=False \
+      gcc \
+      gcc-c++ \
+      gcc-gfortran \
+      make \
+      perl \
+      wget \
+      bzip2 \
+      tar \
+      findutils \
+    && dnf clean all
+
+WORKDIR /tmp/build
+RUN OMPI_MAJOR_MINOR="$(echo ${OPENMPI_VERSION} | cut -d. -f1-2)" \
+    && wget -q "https://download.open-mpi.org/release/open-mpi/v${OMPI_MAJOR_MINOR}/openmpi-${OPENMPI_VERSION}.tar.bz2" \
+    && tar xjf "openmpi-${OPENMPI_VERSION}.tar.bz2"
+
+WORKDIR /tmp/build/openmpi-${OPENMPI_VERSION}
+RUN ./configure \
+      --prefix=${OPENMPI_PREFIX} \
+      --enable-orterun-prefix-by-default \
+      --enable-mpi-fortran=usempi \
+      --disable-static \
+    && make -j"$(nproc)" \
+    && make install \
+    && find ${OPENMPI_PREFIX} -name '*.la' -delete \
+    && strip ${OPENMPI_PREFIX}/bin/* 2>/dev/null || true \
+    && find ${OPENMPI_PREFIX}/lib -name '*.so*' -exec strip {} \; 2>/dev/null || true
+
+# --- Stage 2: Runtime ---------------------------------------------------------
+
+FROM ghcr.io/warewulf/warewulf-rockylinux:9
+
+ARG OPENMPI_PREFIX=/opt/openmpi
+
+RUN dnf install -y --setopt=install_weak_deps=False \
+      libgfortran \
+      libgomp \
+      openssh-clients \
+    && dnf clean all
+
+COPY --from=builder ${OPENMPI_PREFIX} ${OPENMPI_PREFIX}
+COPY openmpi.sh /etc/profile.d/openmpi.sh
+
+CMD [ "/bin/echo", "Warewulf Rocky 9 + OpenMPI image. Import with: wwctl image import docker://<registry>/<image>:<tag> rockylinux9-openmpi" ]
