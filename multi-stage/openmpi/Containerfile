@@ -38,7 +38,7 @@ RUN ./configure \
 
 # --- Stage 2: Runtime ---------------------------------------------------------
 
-FROM ghcr.io/warewulf/warewulf-rockylinux:9
+FROM ghcr.io/ssimpson89/warewulf-rockylinux:latest
 
 ARG OPENMPI_PREFIX=/opt/openmpi
 
