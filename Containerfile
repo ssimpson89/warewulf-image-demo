@@ -1,47 +1,19 @@
 # Warewulf Node Image - Rocky Linux 9
 
-FROM docker.io/rockylinux/rockylinux:9
+FROM ghcr.io/warewulf/warewulf-rockylinux:9
 
 # Warewulf version to install
 ARG WAREWULF_VERSION=4.6.5
 
 # Install essential packages, remove SELinux, and install Warewulf dracut module
 RUN dnf update -y \
-    && dnf install -y --allowerasing \
-      coreutils \
-      cpio \
-      dhclient \
-      e2fsprogs \
-      ethtool \
-      findutils \
-      initscripts \
-      ipmitool \
-      iproute \
-      kernel-core \
-      kernel-modules \
-      net-tools \
-      NetworkManager \
-      nfs-utils \
-      openssh-clients \
-      openssh-server \
-      pciutils \
-      psmisc \
-      rsync \
-      rsyslog \
-      strace \
-      wget \
-      which \
-      words \
+    # Install Warewulf dracut module for network boot support
+    && dnf install -y \
+      https://github.com/warewulf/warewulf/releases/download/v${WAREWULF_VERSION}/warewulf-dracut-${WAREWULF_VERSION}-1.el9.noarch.rpm \
       ignition \
       mdadm \
-    # Remove SELinux policy to reduce image size (can be added back if needed)
-    && dnf remove -y selinux-policy \
-    # Install Warewulf dracut module for network boot support
-    && dnf install -y https://github.com/warewulf/warewulf/releases/download/v${WAREWULF_VERSION}/warewulf-dracut-${WAREWULF_VERSION}-1.el9.noarch.rpm \
-    && dnf clean all \
-    # Set write permissions on root (workaround for OpenHPC compatibility)
-    && chmod u+w /
-
+    && dnf clean all 
+    
 # Generate initramfs with Warewulf support
 RUN dracut --force --no-hostonly --add wwinit --add ignition --add mdraid --regenerate-all
 
